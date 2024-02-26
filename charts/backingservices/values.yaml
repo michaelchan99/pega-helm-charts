@@ -1,11 +1,11 @@
 ---
 global:
   imageCredentials:
-    registry: "YOUR_DOCKER_REGISTRY"
-    username: "YOUR_DOCKER_REGISTRY_USERNAME"
-    password: "YOUR_DOCKER_REGISTRY_PASSWORD"
+    registry: "default-route-openshift-image-registry.apps-crc.testing"
+    username: "kubeadmin"
+    password: "sha256~D-8d6_WEOJu5h_35tcoWSpaaKugCTzTctNKO5J35Qx8"
   # Specify the value of your Kubernetes provider
-  k8sProvider: "YOUR_KUBERNETES_PROVIDER"
+  k8sProvider: "openshift"
 
 # Search and Reporting Service (SRS) Configuration
 srs:
@@ -13,7 +13,7 @@ srs:
   enabled: true
 
   # specify unique name for the deployment based on org app and/or srs applicable environment name. eg: acme-demo-dev-srs
-  deploymentName: "YOUR_SRS_DEPLOYMENT_NAME"
+  deploymentName: "acme-demo-dev-srs"
 
   # Configure the location of the busybox image that is used during the deployment process of
   # the internal Elasticsearch cluster
@@ -23,10 +23,10 @@ srs:
 
   srsRuntime:
     # Number of pods to provision
-    replicaCount: 2
+    replicaCount: 1
 
     # docker image of the srs-service, platform-services/search-n-reporting-service:dockerTag
-    srsImage: "YOUR_SRS_IMAGE:TAG"
+    srsImage: "default-route-openshift-image-registry.apps-crc.testing/mypega/my-search-n-reporting-service:1.29.1"
 
     # To avoid exposing Docker credentials, optionally create a separate Docker config secret.
     # Specify secret names as an array of comma-separated strings. For example: ["secret1", "secret2"]
@@ -43,13 +43,13 @@ srs:
     # Setting srsStorage.provisionInternalESCluster to true will provision an internal elasticsearch cluster using the configuration
     # specified in the `elasticsearch` section
     # If you do not enable SRS and the srs.enabled parameter is set to false, always set srs.srsStorage.provisionInternalESCluster=false
-    provisionInternalESCluster: true
+    provisionInternalESCluster: false
     # To use your own Elasticsearch cluster, set srsStorage.provisionInternalESCluster to false and then
     # set the external Elasticsearch cluster URL and port details below when using an externally managed elasticsearch
     # Ensure that the specified endpoint is accessible from the kubernetes cluster pods.
-    # domain: ""
-    # port: 9200
-    # protocol: https
+    domain: "elasticsearch-master.mypega.svc.cluster.local"
+    port: 9200
+    protocol: http
     # The elasticsearch connection supports three authentication methods: basic authentication ,
     # AWS IAM role-based authentication and Elasticsearch secure connection(tls).
     # Set srs.srsStorage.tls.enabled: true to enable the use of TLS-based authentication to your Elasticsearch service
@@ -68,7 +68,7 @@ srs:
     # Set srs.srsStorage.basicAuthentication.enabled: true to enable the use of basic authentication to your Elasticsearch service
     # whether is it running as an internalized or externalized service in your SRS cluster.
     basicAuthentication:
-      enabled: true
+      enabled: false
     # To configure basic authentication or TLS-based authentication to your externally-managed Elasticsearch service in your SRS cluster,
     # uncomment and add the parameter details: srs.srsStorage.esCredentials.username and srs.srsStorage.esCredentials.password.
     # esCredentials:
@@ -145,11 +145,11 @@ elasticsearch:
 
   resources:
     requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
       cpu: "1000m"
       memory: "2Gi"
-    limits:
-      cpu: "2000m"
-      memory: "3Gi"
 
   volumeClaimTemplate:
     accessModes: ["ReadWriteOnce"]
@@ -166,10 +166,10 @@ elasticsearch:
 
 # For Openshift deployments, you must enable the following custom values. For details
 # refer to https://github.com/elastic/helm-charts/tree/master/elasticsearch/examples/openshift.
-#  securityContext:
-#    runAsUser: null
-#  podSecurityContext:
-#    fsGroup: null
-#    runAsUser: null
-#  sysctlInitContainer:
-#    enabled: false
+  securityContext:
+    runAsUser: null
+  podSecurityContext:
+    fsGroup: null
+    runAsUser: null
+  sysctlInitContainer:
+    enabled: false
